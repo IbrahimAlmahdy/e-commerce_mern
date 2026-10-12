@@ -19,7 +19,6 @@ mongoose
     console.error("Error connecting to MongoDB:", error);
   });
 
-// Seed the products to database
 seedInitialProducts();
 
 app.use("/user", userRouter);
