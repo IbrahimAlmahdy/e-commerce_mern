@@ -134,7 +134,7 @@ Protected routes require a valid JWT passed through the `Authorization` header u
 
 **Ibrahim Almahdy**
 
-- GitHub: [IbrahimAlamhdy](https://github.com/IbrahimAlamhdy)
+- GitHub: [IbrahimAlamhdy](https://github.com/IbrahimAlmahdy)
 - LinkedIn: [Ibrahim Almahdy](https://www.linkedin.com/in/ibrahim-almahdy-eng/)
 
 ---
