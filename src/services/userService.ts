@@ -62,5 +62,5 @@ export const login = async ({ email, password }: LoginParams) => {
 };
 
 const generateJWT = (data: any) => {
-  return jwt.sign(data, "okdklhdlfjlhcvlfhfld", { expiresIn: "1h" });
+  return jwt.sign(data, process.env.JWT_SECRET!, { expiresIn: "1h" });
 };
