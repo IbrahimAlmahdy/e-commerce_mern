@@ -6,6 +6,7 @@ import {
   deleteItemInCart,
   clearCart,
   checkoutCart,
+  getOrdersForUser,
 } from "../services/cartService";
 import { ExtendRequest } from "../extendedRequest";
 import validateJWT from "../middlewares/validateJWT";
@@ -18,6 +19,26 @@ router.get("/", validateJWT, async (req: ExtendRequest, res) => {
     const cart = await getActiveCartForUser({ userId, populateProduct: true });
     res.status(200).send(cart);
   } catch (error) {
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/orders", validateJWT, async (req: ExtendRequest, res) => {
+  try {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      res.status(401).send({ error: "Unauthorized" });
+      return;
+    }
+
+    const orders = await getOrdersForUser({
+      userId: String(userId),
+    });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Failed to fetch user orders:", error);
     res.status(500).send({ error: "Internal Server Error" });
   }
 });

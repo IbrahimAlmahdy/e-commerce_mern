@@ -254,3 +254,9 @@ export const checkoutCart = async ({ userId, address }: Checkout) => {
   await cart.save();
   return { data: order, statusCode: 200 };
 };
+
+export const getOrdersForUser = async ({ userId }: { userId: string }) => {
+  const orders = await orderModel.find({ userId }).sort({ createdAt: -1 });
+
+  return orders;
+};

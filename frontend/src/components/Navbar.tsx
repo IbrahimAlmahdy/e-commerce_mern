@@ -76,24 +76,24 @@ function Navbar() {
                   alignItems: "center",
                 }}
               >
-              <Box
-                component="img"
-                src={nexoraLogo}
-                alt="NEXORA"
-                sx={{ display: "flex", width: 32, height: 32, mr: 1 }}
-              />
+                <Box
+                  component="img"
+                  src={nexoraLogo}
+                  alt="NEXORA"
+                  sx={{ display: "flex", width: 32, height: 32, mr: 1 }}
+                />
                 <Typography
                   variant="h6"
                   noWrap
                   component="a"
                   sx={{
                     mr: 2,
-                  display: "flex",
+                    display: "flex",
                     fontFamily: "monospace",
                     fontWeight: 700,
                   }}
                 >
-                NEXORA
+                  NEXORA
                 </Typography>
               </Box>
             </Button>
@@ -130,7 +130,11 @@ function Navbar() {
                   </Box>
                 </IconButton>
               </Tooltip>
-              <IconButton color="inherit" aria-label="cart" onClick={handleCart}>
+              <IconButton
+                color="inherit"
+                aria-label="cart"
+                onClick={handleCart}
+              >
                 <Badge badgeContent={cartItems.length} color="secondary">
                   <ShoppingCartIcon sx={{ color: "common.white" }} />
                 </Badge>
@@ -173,7 +177,12 @@ function Navbar() {
                     open={Boolean(anchorElUser)}
                     onClose={handleCloseUserMenu}
                   >
-                    <MenuItem onClick={handleCloseUserMenu}>
+                    <MenuItem
+                      onClick={() => {
+                        handleCloseUserMenu();
+                        navigate("/orders");
+                      }}
+                    >
                       <Typography align="center">My Orders</Typography>
                     </MenuItem>
                     <MenuItem onClick={handleLogout}>
