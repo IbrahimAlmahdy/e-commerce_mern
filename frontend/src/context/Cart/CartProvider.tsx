@@ -9,6 +9,9 @@ const CartStateProvider: FC<PropsWithChildren> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [error, setError] = useState("");
+  const [removingProductId, setRemovingProductId] = useState<string | null>(
+    null,
+  );
 
   const updateCart = (cart: {
     items: Array<{
@@ -86,9 +89,46 @@ const CartStateProvider: FC<PropsWithChildren> = ({ children }) => {
     }
   };
 
+  const removeItemFromCart = async (productId: string) => {
+    if (!token) {
+      setError("Please log in to manage your cart.");
+      return;
+    }
+
+    setRemovingProductId(productId);
+
+    try {
+      const response = await fetch(`${BASE_URL}/cart/items/${productId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setError("Failed to remove the item from your cart.");
+        return;
+      }
+
+      updateCart(await response.json());
+      setError("");
+    } catch {
+      setError("Failed to remove the item from your cart.");
+    } finally {
+      setRemovingProductId(null);
+    }
+  };
+
   return (
     <CartContext.Provider
-      value={{ cartItems, totalAmount, error, addItemToCart }}
+      value={{
+        cartItems,
+        totalAmount,
+        error,
+        removingProductId,
+        addItemToCart,
+        removeItemFromCart,
+      }}
     >
       {children}
     </CartContext.Provider>

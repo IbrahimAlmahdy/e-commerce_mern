@@ -25,7 +25,9 @@ const HomePage = () => {
 
   if (error) {
     return (
-      <Box style={{ color: "red", textAlign: "center", marginTop: "20px" }}>
+      <Box
+        sx={{ color: "error.main", textAlign: "center", marginTop: "20px" }}
+      >
         Something went wrong while fetching products, please try again later.
       </Box>
     );
