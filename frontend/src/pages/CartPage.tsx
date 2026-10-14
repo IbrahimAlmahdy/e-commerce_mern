@@ -1,41 +1,30 @@
-import { Container, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
-import { BASE_URL } from "../constants/baseUrl";
-import { useAuth } from "../context/Auth/AuthContext";
+import { Box, Container, Typography } from "@mui/material";
+import { useCart } from "../context/Cart/CartContext";
 
 const CartPage = () => {
-  const { token } = useAuth();
-  const [cart, setCart] = useState();
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (!token) {
-      return;
-    }
-
-    const fetchCart = async () => {
-      const response = await fetch(`${BASE_URL}/cart`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        setError("Failed to fetch user cart. Please try again");
-      }
-
-      const data = await response.json();
-      setCart(data);
-    };
-
-    fetchCart();
-  }, [token]);
-
-  console.log({ cart });
+  const { cartItems, totalAmount, error } = useCart();
 
   return (
     <Container sx={{ mt: 2 }}>
       <Typography variant="h4">My Cart</Typography>
+      {error && <Typography color="error">{error}</Typography>}
+      {cartItems.length === 0 ? (
+        <Typography sx={{ mt: 2 }}>Your cart is empty.</Typography>
+      ) : (
+        <>
+          {cartItems.map((item) => (
+            <Box key={item.productId} sx={{ mt: 2 }}>
+              <Typography>{item.title}</Typography>
+              <Typography variant="body2">
+                {item.quantity} × {item.unitPrice} EGP
+              </Typography>
+            </Box>
+          ))}
+          <Typography sx={{ mt: 3 }} variant="h6">
+            Total: {totalAmount} EGP
+          </Typography>
+        </>
+      )}
     </Container>
   );
 };

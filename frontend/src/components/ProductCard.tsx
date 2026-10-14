@@ -5,6 +5,8 @@ import CardMedia from "@mui/material/CardMedia";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useCart } from "../context/Cart/CartContext";
+import { useAuth } from "../context/Auth/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   _id: string;
@@ -15,6 +17,17 @@ interface Props {
 
 export default function ProductCard({ _id, title, image, price }: Props) {
   const { addItemToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    void addItemToCart(_id);
+  };
   return (
     <Card>
       <CardMedia sx={{ height: 200 }} image={image} title="green iguana" />
@@ -30,7 +43,7 @@ export default function ProductCard({ _id, title, image, price }: Props) {
         <Button
           variant="contained"
           size="small"
-          onClick={() => addItemToCart(_id)}
+          onClick={handleAddToCart}
         >
           Add to Cart
         </Button>
