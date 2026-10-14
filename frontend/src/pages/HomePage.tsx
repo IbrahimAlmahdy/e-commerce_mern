@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard";
 import { useEffect, useState } from "react";
 import type { Product } from "../types/Product";
 import { BASE_URL } from "../constants/baseUrl";
+import Box from "@mui/material/Box";
 
 const HomePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,9 +25,9 @@ const HomePage = () => {
 
   if (error) {
     return (
-      <h3 style={{ color: "red", textAlign: "center", marginTop: "20px" }}>
+      <Box style={{ color: "red", textAlign: "center", marginTop: "20px" }}>
         Something went wrong while fetching products, please try again later.
-      </h3>
+      </Box>
     );
   }
 

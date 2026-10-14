@@ -12,7 +12,7 @@ router.post("/register", async (req, res) => {
       email,
       password,
     });
-    res.status(statusCode).send(data);
+    res.status(statusCode).json(data);
   } catch (error) {
     res.status(500).send({ error: "Internal Server Error" });
   }
@@ -22,7 +22,7 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const { data, statusCode } = await login({ email, password });
-    res.status(statusCode).send(data);
+    res.status(statusCode).json(data);
   } catch (error) {
     res.status(500).send({ error: "Internal Server Error" });
   }
