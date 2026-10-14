@@ -1,104 +1,189 @@
-import { useEffect, useState, type FC, type PropsWithChildren } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { PropsWithChildren } from "react";
 import { CartContext } from "./CartContext";
 import type { CartItem } from "../../types/CartItem";
 import { BASE_URL } from "../../constants/baseUrl";
 import { useAuth } from "../Auth/AuthContext";
 
-const CartStateProvider: FC<PropsWithChildren> = ({ children }) => {
+interface ApiCartItem {
+  product: {
+    _id: string;
+    title: string;
+    image: string;
+    unitPrice?: number;
+  };
+  quantity: number;
+  unitPrice?: number;
+}
+
+interface ApiCart {
+  items: ApiCartItem[];
+  totalAmount?: number;
+}
+
+const mapCartItems = (items: ApiCartItem[]): CartItem[] =>
+  items.map(({ product, quantity, unitPrice }) => ({
+    productId: product._id,
+    title: product.title,
+    image: product.image,
+    quantity,
+    unitPrice: unitPrice ?? product.unitPrice ?? 0,
+  }));
+
+const CartProvider = ({ children }: PropsWithChildren) => {
   const { token } = useAuth();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [totalAmount, setTotalAmount] = useState<number>(0);
+  const [totalAmount, setTotalAmount] = useState(0);
   const [error, setError] = useState("");
-  const [removingProductId, setRemovingProductId] = useState<string | null>(
-    null,
+
+  const applyCart = useCallback((cart: ApiCart) => {
+    const items = mapCartItems(cart.items);
+
+    setCartItems(items);
+    setTotalAmount(
+      cart.totalAmount ??
+        items.reduce(
+          (total, item) => total + item.quantity * item.unitPrice,
+          0,
+        ),
+    );
+  }, []);
+
+  const requestCart = useCallback(
+    async (url: string, options: RequestInit = {}): Promise<ApiCart> => {
+      if (!token) {
+        throw new Error("Please log in to manage your cart.");
+      }
+
+      const response = await fetch(`${BASE_URL}${url}`, {
+        ...options,
+        headers: {
+          ...(options.body ? { "Content-Type": "application/json" } : {}),
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Cart request failed (${response.status}).`);
+      }
+
+      const data: unknown = await response.json();
+
+      if (
+        typeof data !== "object" ||
+        data === null ||
+        !("items" in data) ||
+        !Array.isArray(data.items)
+      ) {
+        throw new Error("Invalid cart response from server.");
+      }
+
+      return data as ApiCart;
+    },
+    [token],
   );
 
-  const updateCart = (cart: {
-    items: Array<{
-      product: { _id: string; title: string; image: string };
-      quantity: number;
-      unitPrice: number;
-    }>;
-    totalAmount: number;
-  }) => {
-    setCartItems(
-      cart.items.map(({ product, quantity, unitPrice }) => ({
-        productId: product._id,
-        title: product.title,
-        image: product.image,
-        quantity,
-        unitPrice,
-      })),
-    );
-    setTotalAmount(cart.totalAmount);
-  };
+  const fetchCart = useCallback(async () => {
+    try {
+      setError("");
+
+      const cart = await requestCart("/cart");
+      applyCart(cart);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch cart.");
+    }
+  }, [requestCart, applyCart]);
 
   useEffect(() => {
     if (!token) {
       return;
     }
 
-    const loadCart = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/cart`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    void fetchCart();
+  }, [token, fetchCart]);
 
-        if (!response.ok) {
-          setError("Failed to fetch your cart. Please try again.");
-          return;
-        }
+  useEffect(() => {
+    if (token) {
+      return;
+    }
 
-        updateCart(await response.json());
-        setError("");
-      } catch {
-        setError("Failed to fetch your cart. Please try again.");
-      }
+    const resetCart = () => {
+      setCartItems([]);
+      setTotalAmount(0);
+      setError("");
     };
 
-    void loadCart();
+    const timeoutId = setTimeout(resetCart, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [token]);
 
   const addItemToCart = async (productId: string) => {
-    if (!token) {
-      setError("Please log in to add items to your cart.");
-      return;
-    }
-
     try {
-      const response = await fetch(`${BASE_URL}/cart/items`, {
+      setError("");
+
+      const cart = await requestCart("/cart/items", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ productId, quantity: 1 }),
       });
 
-      if (!response.ok) {
-        setError("Failed to add item to cart.");
-        return;
-      }
-
-      updateCart(await response.json());
-      setError("");
-    } catch {
-      setError("Failed to add item to cart.");
+      applyCart(cart);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to add item to cart.",
+      );
     }
   };
 
-  const removeItemFromCart = async (productId: string) => {
-    if (!token) {
-      setError("Please log in to manage your cart.");
+  const updateItemInCart = async (productId: string, quantity: number) => {
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      setError("Quantity must be at least 1.");
       return;
     }
 
-    setRemovingProductId(productId);
+    try {
+      setError("");
+
+      const cart = await requestCart("/cart/items", {
+        method: "PUT",
+        body: JSON.stringify({ productId, quantity }),
+      });
+
+      applyCart(cart);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update cart.");
+    }
+  };
+
+  const removeItemInCart = async (productId: string) => {
+    try {
+      setError("");
+
+      const cart = await requestCart(
+        `/cart/items/${encodeURIComponent(productId)}`,
+        { method: "DELETE" },
+      );
+
+      applyCart(cart);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove item.");
+    }
+  };
+
+  const clearCart = async () => {
+    if (!token) {
+      setCartItems([]);
+      setTotalAmount(0);
+      setError("");
+      return;
+    }
 
     try {
-      const response = await fetch(`${BASE_URL}/cart/items/${productId}`, {
+      setError("");
+
+      const response = await fetch(`${BASE_URL}/cart`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -106,18 +191,17 @@ const CartStateProvider: FC<PropsWithChildren> = ({ children }) => {
       });
 
       if (!response.ok) {
-        setError("Failed to remove the item from your cart.");
-        return;
+        throw new Error(`Failed to clear cart (${response.status}).`);
       }
 
-      updateCart(await response.json());
-      setError("");
-    } catch {
-      setError("Failed to remove the item from your cart.");
-    } finally {
-      setRemovingProductId(null);
+      setCartItems([]);
+      setTotalAmount(0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to clear cart.");
     }
   };
+
+  const clearError = () => setError("");
 
   return (
     <CartContext.Provider
@@ -125,21 +209,15 @@ const CartStateProvider: FC<PropsWithChildren> = ({ children }) => {
         cartItems,
         totalAmount,
         error,
-        removingProductId,
         addItemToCart,
-        removeItemFromCart,
+        updateItemInCart,
+        removeItemInCart,
+        clearCart,
+        clearError,
       }}
     >
       {children}
     </CartContext.Provider>
-  );
-};
-
-const CartProvider: FC<PropsWithChildren> = ({ children }) => {
-  const { token } = useAuth();
-
-  return (
-    <CartStateProvider key={token ?? "guest"}>{children}</CartStateProvider>
   );
 };
 

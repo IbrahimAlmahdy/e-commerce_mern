@@ -1,44 +1,75 @@
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/Cart/CartContext";
 
 const CartPage = () => {
-  const { cartItems, totalAmount, error, removingProductId, removeItemFromCart } =
-    useCart();
+  const {
+    cartItems,
+    totalAmount,
+    error,
+    updateItemInCart,
+    removeItemInCart,
+    clearCart,
+    clearError,
+  } = useCart();
+
   const navigate = useNavigate();
 
-  const handleQuantity = (_productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      return;
-    }
+  const handleQuantity = (productId: string, quantity: number) => {
+    if (quantity < 1) return;
 
-    // TODO: Call the CartContext update-quantity function here.
+    void updateItemInCart(productId, quantity);
+  };
+
+  const handleRemoveItem = (productId: string) => {
+    void removeItemInCart(productId);
   };
 
   const handleCheckout = () => {
     navigate("/checkout");
   };
 
+  const handleClearCart = () => {
+    void clearCart();
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
-        My Cart
-      </Typography>
-      {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
-          {error}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          My Cart
         </Typography>
+
+        {cartItems.length > 0 && (
+          <Button color="error" onClick={handleClearCart}>
+            Clear Cart
+          </Button>
+        )}
+      </Box>
+
+      {error && (
+        <Alert severity="error" onClose={clearError} sx={{ mb: 3 }}>
+          {error}
+        </Alert>
       )}
 
       {cartItems.length === 0 ? (
         <Box sx={{ textAlign: "center", py: 6 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Your cart is empty.
+            Cart is empty. Start shopping and add items first.
           </Typography>
 
           <Button variant="contained" onClick={() => navigate("/")}>
@@ -54,12 +85,12 @@ const CartPage = () => {
                 display: "flex",
                 flexDirection: { xs: "column", sm: "row" },
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: { xs: "stretch", sm: "center" },
                 gap: 2,
+                p: 2,
                 border: 1,
                 borderColor: "divider",
                 borderRadius: 3,
-                p: 2,
               }}
             >
               <Box
@@ -67,7 +98,7 @@ const CartPage = () => {
                   display: "flex",
                   alignItems: "center",
                   gap: 2,
-                  width: "100%",
+                  minWidth: 0,
                 }}
               >
                 <Box
@@ -75,43 +106,42 @@ const CartPage = () => {
                   src={item.image}
                   alt={item.title}
                   sx={{
-                    width: 80,
-                    height: 80,
+                    width: 90,
+                    height: 90,
                     objectFit: "contain",
+                    flexShrink: 0,
                   }}
                 />
 
-                <Box>
+                <Box sx={{ minWidth: 0 }}>
                   <Typography variant="h6">{item.title}</Typography>
 
                   <Typography color="text.secondary">
-                    {item.quantity} × {item.unitPrice.toFixed(2)} EGP
+                    {item.unitPrice.toFixed(2)} EGP × {item.quantity}
                   </Typography>
 
-                  <Typography sx={{ fontWeight: "bold" }}>
-                    Subtotal: {(item.quantity * item.unitPrice).toFixed(2)} EGP
+                  <Typography sx={{ fontWeight: 700, mt: 0.5 }}>
+                    Subtotal: {(item.unitPrice * item.quantity).toFixed(2)} EGP
                   </Typography>
 
                   <Button
                     color="error"
-                    variant="outlined"
                     size="small"
-                    startIcon={<DeleteOutlinedIcon />}
-                    disabled={removingProductId === item.productId}
-                    onClick={() => void removeItemFromCart(item.productId)}
-                    sx={{ mt: 1.5 }}
+                    onClick={() => handleRemoveItem(item.productId)}
+                    sx={{ mt: 1 }}
                   >
-                    {removingProductId === item.productId
-                      ? "Removing…"
-                      : "Remove Item"}
+                    Remove Item
                   </Button>
                 </Box>
               </Box>
 
-              <ButtonGroup variant="outlined" aria-label="Product quantity">
+              <ButtonGroup
+                variant="outlined"
+                aria-label={`Quantity controls for ${item.title}`}
+              >
                 <Button
-                  aria-label={`Decrease quantity of ${item.title}`}
                   disabled={item.quantity <= 1}
+                  aria-label="Decrease quantity"
                   onClick={() =>
                     handleQuantity(item.productId, item.quantity - 1)
                   }
@@ -122,7 +152,7 @@ const CartPage = () => {
                 <Button disabled>{item.quantity}</Button>
 
                 <Button
-                  aria-label={`Increase quantity of ${item.title}`}
+                  aria-label="Increase quantity"
                   onClick={() =>
                     handleQuantity(item.productId, item.quantity + 1)
                   }
@@ -144,11 +174,11 @@ const CartPage = () => {
             }}
           >
             <Typography variant="h5" component="p">
-              Total: {totalAmount.toFixed(2)} EGP
+              Total Amount: {totalAmount.toFixed(2)} EGP
             </Typography>
 
             <Button variant="contained" size="large" onClick={handleCheckout}>
-              Go to Checkout
+              Go To Checkout
             </Button>
           </Box>
         </Box>
