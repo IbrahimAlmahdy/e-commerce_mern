@@ -1,6 +1,7 @@
 import { Box, Button, Container, TextField, Typography } from "@mui/material";
 import { useRef, useState } from "react";
 import { BASE_URL } from "../constants/baseUrl";
+import { useAuth } from "../context/Auth/AuthContext";
 
 const RegisterPage = () => {
   const [error, setError] = useState("");
@@ -8,6 +9,8 @@ const RegisterPage = () => {
   const lastNameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+
+  const { login } = useAuth();
 
   const onSubmit = async () => {
     const firstName = firstNameRef.current?.value;
@@ -29,8 +32,13 @@ const RegisterPage = () => {
       return setError("Failed to register user");
     }
 
-    const data = await response.json();
-    console.log("Registration data:", data);
+    const token = await response.json();
+
+    if (!token) {
+      return setError("No token returned from server");
+    }
+
+    login(email!, token);
   };
 
   return (
