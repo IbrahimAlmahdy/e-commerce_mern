@@ -6,11 +6,13 @@ import userRouter from "./routes/userRoute";
 import productRouter from "./routes/ProductRoute";
 import cartRouter from "./routes/cartRoute";
 import { seedInitialProducts } from "./services/productService";
+import cors from "cors";
 
 const app = express();
 const port = 3001;
 
 app.use(express.json());
+app.use(cors());
 
 mongoose
   .connect(process.env.DATABASE_URL!)
