@@ -42,7 +42,7 @@ const calculateTotal = (cart: ApiCart): number => {
 };
 
 const CartProvider = ({ children }: PropsWithChildren) => {
-  const { token } = useAuth();
+  const token = useAuth((state) => state.token);
   const queryClient = useQueryClient();
 
   const [error, setError] = useState("");
