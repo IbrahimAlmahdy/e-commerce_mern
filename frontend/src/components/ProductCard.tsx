@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { ShoppingCart, ArrowUpRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useCart } from "../context/Cart/CartContext";
 import { useAuth } from "../stores/authStore";
+
 interface Props {
   _id: string;
   title: string;
@@ -18,6 +19,8 @@ export default function ProductCard({ _id, title, image, price }: Props) {
 
   const [isAdding, setIsAdding] = useState(false);
   const [imageError, setImageError] = useState(false);
+
+  const productDetailsPath = `/product/${_id}`;
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
@@ -41,7 +44,11 @@ export default function ProductCard({ _id, title, image, price }: Props) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-950/10 dark:border-white/10 dark:bg-[#1A1C22] dark:hover:border-blue-400/40">
       {/* Product Image */}
-      <div className="relative flex h-56 items-center justify-center overflow-hidden bg-gray-50 p-6 dark:bg-[#22252D]">
+      <Link
+        to={productDetailsPath}
+        aria-label={`View details for ${title}`}
+        className="relative flex h-56 items-center justify-center overflow-hidden bg-gray-50 p-6 dark:bg-[#22252D]"
+      >
         {!imageError && image ? (
           <img
             src={image}
@@ -60,16 +67,21 @@ export default function ProductCard({ _id, title, image, price }: Props) {
         <div className="absolute right-4 top-4 flex h-9 w-9 translate-y-2 items-center justify-center rounded-full bg-white text-gray-700 opacity-0 shadow-md transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 dark:bg-[#30343D] dark:text-white">
           <ArrowUpRight size={17} />
         </div>
-      </div>
+      </Link>
 
       {/* Product Information */}
       <div className="flex flex-1 flex-col p-5">
-        <h3
-          title={title}
-          className="line-clamp-2 min-h-12 text-base font-semibold leading-6 text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400"
+        <Link
+          to={productDetailsPath}
+          className="rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500"
         >
-          {title}
-        </h3>
+          <h3
+            title={title}
+            className="line-clamp-2 min-h-12 text-base font-semibold leading-6 text-gray-900 transition-colors hover:text-blue-600 dark:text-white dark:hover:text-blue-400"
+          >
+            {title}
+          </h3>
+        </Link>
 
         <div className="mt-4 flex items-center justify-between gap-2">
           <div>

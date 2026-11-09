@@ -10,6 +10,7 @@ import CartProvider from "../context/Cart/CartProvider";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
 import MyOrdersPage from "../pages/MyOrdersPage";
+import ProductDetailsPage from "../pages/ProductDetailsPage";
 
 function App() {
   return (
@@ -21,6 +22,9 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
+
+          {/* Product Details - Public Route */}
+          <Route path="/product/:productId" element={<ProductDetailsPage />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/cart" element={<CartPage />} />
