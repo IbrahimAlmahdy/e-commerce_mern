@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import { LockKeyhole, Mail, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-import { BASE_URL } from "../constants/baseUrl";
-import { useAuth } from "../context/Auth/AuthContext";
+import api from "../lib/axios";
+import { useAuth } from "../stores/authStore";
 
 const LoginPage = () => {
   const [error, setError] = useState("");
@@ -13,7 +14,7 @@ const LoginPage = () => {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuth((state) => state.login);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -30,20 +31,12 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${BASE_URL}/user/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+      const response = await api.post<string>("/user/login", {
+        email,
+        password,
       });
 
-      if (!response.ok) {
-        setError("Failed to login user");
-        return;
-      }
-
-      const token = await response.json();
+      const token = response.data;
 
       if (!token) {
         setError("No token returned from server");
@@ -52,8 +45,12 @@ const LoginPage = () => {
 
       login(email, token);
       navigate("/");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response) {
+        setError("Failed to login user");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

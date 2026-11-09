@@ -3,8 +3,7 @@ import { ShoppingCart, ArrowUpRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useCart } from "../context/Cart/CartContext";
-import { useAuth } from "../context/Auth/AuthContext";
-
+import { useAuth } from "../stores/authStore";
 interface Props {
   _id: string;
   title: string;

@@ -2,8 +2,8 @@ import { useRef, useState } from "react";
 import { UserRound, Mail, LockKeyhole, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { BASE_URL } from "../constants/baseUrl";
-import { useAuth } from "../context/Auth/AuthContext";
+import api from "../lib/axios";
+import { useAuth } from "../stores/authStore";
 
 const RegisterPage = () => {
   const [error, setError] = useState("");
@@ -15,7 +15,7 @@ const RegisterPage = () => {
   const passwordRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const login = useAuth((state) => state.login);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,25 +34,14 @@ const RegisterPage = () => {
     try {
       setIsLoading(true);
 
-      const response = await fetch(`${BASE_URL}/user/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          email,
-          password,
-        }),
+      const response = await api.post<string>("/user/register", {
+        firstName,
+        lastName,
+        email,
+        password,
       });
 
-      if (!response.ok) {
-        setError("Failed to register user");
-        return;
-      }
-
-      const token = await response.json();
+      const token = response.data;
 
       if (!token) {
         setError("No token returned from server");
@@ -62,7 +51,7 @@ const RegisterPage = () => {
       login(email, token);
       navigate("/");
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Failed to register user");
     } finally {
       setIsLoading(false);
     }

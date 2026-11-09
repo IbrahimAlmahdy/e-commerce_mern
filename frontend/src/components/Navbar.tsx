@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "../context/Auth/AuthContext";
+import { useAuth } from "../stores/authStore";
 import { useCart } from "../context/Cart/CartContext";
 import { useThemeMode } from "../theme/ThemeModeContext";
 import nexoraLogo from "../assets/nexora-logo.png";
