@@ -10,7 +10,7 @@ import CartProvider from "../context/Cart/CartProvider";
 import CheckoutPage from "../pages/CheckoutPage";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
 import MyOrdersPage from "../pages/MyOrdersPage";
-import ProductDetailsPage from "../pages/ProductDetailsPage";
+import ProductDetailsPage from "../features/products/pages/ProductDetailsPage";
 
 function App() {
   return (

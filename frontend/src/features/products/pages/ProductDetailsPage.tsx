@@ -1,17 +1,10 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import api from "../lib/axios";
-import { useAuth } from "../stores/authStore";
-import { useCart } from "../context/Cart/CartContext";
-import type { Product } from "../types/Product";
-
-const fetchProducts = async (): Promise<Product[]> => {
-  const response = await api.get<Product[]>("/product");
-  return response.data;
-};
+import { useAuth } from "../../../stores/authStore";
+import { useCart } from "../../../context/Cart/CartContext";
+import { useProducts } from "../hooks/useProducts";
 
 export default function ProductDetailsPage() {
   const { productId } = useParams<{ productId: string }>();
@@ -29,10 +22,7 @@ export default function ProductDetailsPage() {
     isError,
     refetch,
     isFetching,
-  } = useQuery({
-    queryKey: ["products"],
-    queryFn: fetchProducts,
-  });
+  } = useProducts();
 
   const product = products.find((item) => item._id === productId);
 

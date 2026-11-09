@@ -1,26 +1,36 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 
-import ProductCard from "../components/ProductCard";
-import type { Product } from "../types/Product";
-import api from "../lib/axios";
-
-const fetchProducts = async (): Promise<Product[]> => {
-  const response = await api.get<Product[]>("/product");
-
-  return response.data;
-};
+import ProductCard from "../features/products/components/ProductCard";
+import ProductToolbar from "../features/products/components/ProductToolbar";
+import { useProducts } from "../features/products/hooks/useProducts";
 
 const HomePage = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("default");
+
   const {
     data: products = [],
     isLoading,
     isError,
     refetch,
     isFetching,
-  } = useQuery({
-    queryKey: ["products"],
-    queryFn: fetchProducts,
-  });
+  } = useProducts();
+
+  const filteredProducts = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    const result = products.filter((product) =>
+      product.title.toLowerCase().includes(normalizedSearch),
+    );
+
+    if (sortOrder === "price-asc") {
+      result.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sortOrder === "price-desc") {
+      result.sort((a, b) => Number(b.price) - Number(a.price));
+    }
+
+    return result;
+  }, [products, searchTerm, sortOrder]);
 
   if (isLoading) {
     return (
@@ -56,11 +66,38 @@ const HomePage = () => {
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {products.map((product) => (
-          <ProductCard key={product._id} {...product} />
-        ))}
-      </div>
+      <ProductToolbar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        sortOrder={sortOrder}
+        onSortChange={setSortOrder}
+      />
+
+      {filteredProducts.length > 0 ? (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product._id} {...product} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex min-h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-border px-6 text-center">
+          <h2 className="text-xl font-bold text-foreground">
+            No Products Found
+          </h2>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try searching with a different product name.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setSearchTerm("")}
+            className="mt-5 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            Clear Search
+          </button>
+        </div>
+      )}
     </main>
   );
 };
