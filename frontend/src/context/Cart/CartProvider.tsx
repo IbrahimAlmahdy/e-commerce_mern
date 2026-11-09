@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { PropsWithChildren } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { CartContext } from "./CartContext";
 import type { CartItem } from "../../types/CartItem";
-import { BASE_URL } from "../../constants/baseUrl";
-import { useAuth } from "../Auth/AuthContext";
+import api from "../../lib/axios";
+import { useAuth } from "../../stores/authStore";
 
 interface ApiCartItem {
   product: {
@@ -30,46 +32,42 @@ const mapCartItems = (items: ApiCartItem[]): CartItem[] =>
     unitPrice: unitPrice ?? product.unitPrice ?? 0,
   }));
 
+const calculateTotal = (cart: ApiCart): number => {
+  const items = mapCartItems(cart.items);
+
+  return (
+    cart.totalAmount ??
+    items.reduce((total, item) => total + item.quantity * item.unitPrice, 0)
+  );
+};
+
 const CartProvider = ({ children }: PropsWithChildren) => {
   const { token } = useAuth();
+  const queryClient = useQueryClient();
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [totalAmount, setTotalAmount] = useState(0);
   const [error, setError] = useState("");
 
-  const applyCart = useCallback((cart: ApiCart) => {
-    const items = mapCartItems(cart.items);
-
-    setCartItems(items);
-    setTotalAmount(
-      cart.totalAmount ??
-        items.reduce(
-          (total, item) => total + item.quantity * item.unitPrice,
-          0,
-        ),
-    );
-  }, []);
+  const cartQueryKey = ["cart", token];
 
   const requestCart = useCallback(
-    async (url: string, options: RequestInit = {}): Promise<ApiCart> => {
+    async (
+      url: string,
+      options: {
+        method?: "GET" | "POST" | "PUT" | "DELETE";
+        data?: unknown;
+      } = {},
+    ): Promise<ApiCart> => {
       if (!token) {
         throw new Error("Please log in to manage your cart.");
       }
 
-      const response = await fetch(`${BASE_URL}${url}`, {
-        ...options,
-        headers: {
-          ...(options.body ? { "Content-Type": "application/json" } : {}),
-          ...options.headers,
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await api.request<ApiCart>({
+        url,
+        method: options.method ?? "GET",
+        data: options.data,
       });
 
-      if (!response.ok) {
-        throw new Error(`Cart request failed (${response.status}).`);
-      }
-
-      const data: unknown = await response.json();
+      const data: unknown = response.data;
 
       if (
         typeof data !== "object" ||
@@ -85,56 +83,41 @@ const CartProvider = ({ children }: PropsWithChildren) => {
     [token],
   );
 
-  const fetchCart = useCallback(async () => {
+  // Fetch cart data through TanStack Query.
+  const { data: cart, error: queryError } = useQuery({
+    queryKey: cartQueryKey,
+    queryFn: () => requestCart("/cart"),
+    enabled: Boolean(token),
+  });
+
+  const cartItems = token && cart ? mapCartItems(cart.items) : [];
+
+  const totalAmount = token && cart ? calculateTotal(cart) : 0;
+
+  const executeCartMutation = async (
+    action: () => Promise<ApiCart>,
+    fallbackMessage: string,
+  ) => {
     try {
       setError("");
 
-      const cart = await requestCart("/cart");
-      applyCart(cart);
+      const updatedCart = await action();
+
+      queryClient.setQueryData<ApiCart>(cartQueryKey, updatedCart);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch cart.");
+      setError(err instanceof Error ? err.message : fallbackMessage);
     }
-  }, [requestCart, applyCart]);
-
-  useEffect(() => {
-    if (!token) {
-      return;
-    }
-
-    void fetchCart();
-  }, [token, fetchCart]);
-
-  useEffect(() => {
-    if (token) {
-      return;
-    }
-
-    const resetCart = () => {
-      setCartItems([]);
-      setTotalAmount(0);
-      setError("");
-    };
-
-    const timeoutId = setTimeout(resetCart, 0);
-
-    return () => clearTimeout(timeoutId);
-  }, [token]);
+  };
 
   const addItemToCart = async (productId: string) => {
-    try {
-      setError("");
-
-      const cart = await requestCart("/cart/items", {
-        method: "POST",
-        body: JSON.stringify({ productId, quantity: 1 }),
-      });
-
-      applyCart(cart);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to add item to cart.",
-      );
-    }
+    await executeCartMutation(
+      () =>
+        requestCart("/cart/items", {
+          method: "POST",
+          data: { productId, quantity: 1 },
+        }),
+      "Failed to add item to cart.",
+    );
   };
 
   const updateItemInCart = async (productId: string, quantity: number) => {
@@ -143,59 +126,40 @@ const CartProvider = ({ children }: PropsWithChildren) => {
       return;
     }
 
-    try {
-      setError("");
-
-      const cart = await requestCart("/cart/items", {
-        method: "PUT",
-        body: JSON.stringify({ productId, quantity }),
-      });
-
-      applyCart(cart);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update cart.");
-    }
+    await executeCartMutation(
+      () =>
+        requestCart("/cart/items", {
+          method: "PUT",
+          data: { productId, quantity },
+        }),
+      "Failed to update cart.",
+    );
   };
 
   const removeItemInCart = async (productId: string) => {
-    try {
-      setError("");
-
-      const cart = await requestCart(
-        `/cart/items/${encodeURIComponent(productId)}`,
-        { method: "DELETE" },
-      );
-
-      applyCart(cart);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove item.");
-    }
+    await executeCartMutation(
+      () =>
+        requestCart(`/cart/items/${encodeURIComponent(productId)}`, {
+          method: "DELETE",
+        }),
+      "Failed to remove item.",
+    );
   };
 
   const clearCart = async () => {
     if (!token) {
-      setCartItems([]);
-      setTotalAmount(0);
-      setError("");
       return;
     }
 
     try {
       setError("");
 
-      const response = await fetch(`${BASE_URL}/cart`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await api.delete("/cart");
+
+      queryClient.setQueryData<ApiCart>(cartQueryKey, {
+        items: [],
+        totalAmount: 0,
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to clear cart (${response.status}).`);
-      }
-
-      setCartItems([]);
-      setTotalAmount(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to clear cart.");
     }
@@ -203,12 +167,15 @@ const CartProvider = ({ children }: PropsWithChildren) => {
 
   const clearError = () => setError("");
 
+  const cartError =
+    error || (queryError instanceof Error ? queryError.message : "");
+
   return (
     <CartContext.Provider
       value={{
         cartItems,
         totalAmount,
-        error,
+        error: cartError,
         addItemToCart,
         updateItemInCart,
         removeItemInCart,
