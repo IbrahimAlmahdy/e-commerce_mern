@@ -10,8 +10,9 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { useCart } from "../context/Cart/CartContext";
-import { BASE_URL } from "../constants/baseUrl";
-import { useAuth } from "../context/Auth/AuthContext";
+import api from "../lib/axios";
+import { useAuth } from "../stores/authStore";
+import axios from "axios";
 
 const CheckoutPage = () => {
   const { cartItems, totalAmount } = useCart();
@@ -49,28 +50,17 @@ const CheckoutPage = () => {
       setError("");
       setLoading(true);
 
-      const response = await fetch(`${BASE_URL}/cart/checkout`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ address }),
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to place order (${response.status}). Please try again.`,
-        );
-      }
+      await api.post("/cart/checkout", { address });
 
       navigate("/order-success");
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again.",
-      );
+      if (axios.isAxiosError(err) && err.response) {
+        setError(
+          `Failed to place order (${err.response.status}). Please try again.`,
+        );
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
