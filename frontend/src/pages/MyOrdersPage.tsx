@@ -1,26 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Container,
-  Divider,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
-import {
-  ArrowBackRounded,
-  CalendarMonthOutlined,
-  CheckCircleOutlineRounded,
-  Inventory2Outlined,
-  LocationOnOutlined,
-  RefreshRounded,
-  ShoppingBagOutlined,
-} from "@mui/icons-material";
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  MapPin,
+  Package,
+  RefreshCw,
+  ShoppingBag,
+  Truck,
+  XCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
 import { BASE_URL } from "../constants/baseUrl";
 import { useAuth } from "../context/Auth/AuthContext";
 
@@ -48,22 +40,44 @@ interface Order {
   totalAmount?: number;
 }
 
-const getStatusColor = (
-  status: string,
-): "default" | "warning" | "info" | "success" | "error" => {
+const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
     case "delivered":
     case "completed":
-      return "success";
+      return {
+        className:
+          "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400",
+        icon: CheckCircle2,
+      };
+
     case "shipped":
-      return "info";
+      return {
+        className:
+          "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400",
+        icon: Truck,
+      };
+
     case "processing":
-      return "warning";
+      return {
+        className:
+          "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400",
+        icon: Clock3,
+      };
+
     case "cancelled":
     case "canceled":
-      return "error";
+      return {
+        className:
+          "border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400",
+        icon: XCircle,
+      };
+
     default:
-      return "default";
+      return {
+        className:
+          "border-gray-200 bg-gray-50 text-gray-600 dark:border-white/10 dark:bg-white/5 dark:text-gray-400",
+        icon: Package,
+      };
   }
 };
 
@@ -84,6 +98,18 @@ const getOrderItems = (order: Order): OrderProduct[] => {
   }
 
   return order.items ?? [];
+};
+
+const formatDate = (date?: string) => {
+  if (!date || Number.isNaN(Date.parse(date))) {
+    return "Date unavailable";
+  }
+
+  return new Date(date).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const MyOrdersPage = () => {
@@ -148,535 +174,271 @@ const MyOrdersPage = () => {
 
   if (!isAuthenticated || !token) {
     return (
-      <Container maxWidth="sm" sx={{ py: { xs: 5, md: 9 } }}>
-        <Paper
-          elevation={0}
-          sx={{
-            p: { xs: 3, sm: 5 },
-            textAlign: "center",
-            borderRadius: 4,
-            border: 1,
-            borderColor: "divider",
-            bgcolor: "background.paper",
-          }}
-        >
-          <Box
-            sx={{
-              width: 84,
-              height: 84,
-              mx: "auto",
-              mb: 3,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 3,
-              bgcolor: "action.hover",
-              color: "primary.main",
-            }}
-          >
-            <Inventory2Outlined sx={{ fontSize: 42 }} />
-          </Box>
+      <main className="flex min-h-[70vh] items-center justify-center bg-gray-50 px-4 py-12 dark:bg-[#111318]">
+        <div className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white px-6 py-12 text-center shadow-sm sm:px-10 dark:border-white/10 dark:bg-[#1A1C22]">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+            <Package size={38} />
+          </div>
 
-          <Typography variant="h5" fontWeight={800} gutterBottom>
+          <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">
             Sign in to view your orders
-          </Typography>
+          </h1>
 
-          <Typography color="text.secondary" sx={{ mb: 3, lineHeight: 1.8 }}>
+          <p className="mt-3 text-sm leading-7 text-gray-500 dark:text-gray-400">
             Log in to access your order history and track your purchases.
-          </Typography>
+          </p>
 
-          <Button
-            variant="contained"
+          <button
+            type="button"
             onClick={() => navigate("/login")}
-            sx={{
-              px: 4,
-              py: 1.2,
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: "none",
-            }}
+            className="mt-7 rounded-xl bg-blue-600 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
           >
             Login
-          </Button>
-        </Paper>
-      </Container>
+          </button>
+        </div>
+      </main>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-      {/* Page Header */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        justifyContent="space-between"
-        alignItems={{ xs: "stretch", sm: "center" }}
-        spacing={3}
-        sx={{ mb: { xs: 3, md: 4 } }}
-      >
-        <Box>
-          <Typography
-            variant="overline"
-            sx={{
-              color: "primary.main",
-              fontWeight: 800,
-              letterSpacing: 2,
-            }}
-          >
-            NEXORA STORE
-          </Typography>
+    <main className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-[#111318] sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Page Header */}
+        <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
+              NEXORA STORE
+            </p>
 
-          <Typography
-            component="h1"
-            variant="h4"
-            sx={{
-              fontWeight: 800,
-              letterSpacing: "-0.8px",
-              fontSize: { xs: "1.9rem", sm: "2.4rem" },
-              mt: 0.3,
-            }}
-          >
-            My Orders
-          </Typography>
+            <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+              My Orders
+            </h1>
 
-          <Typography
-            color="text.secondary"
-            sx={{ mt: 1, fontSize: "0.95rem" }}
-          >
-            Track your purchases and manage your order history.
-          </Typography>
-        </Box>
+            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+              Track your purchases and manage your order history.
+            </p>
+          </div>
 
-        <Stack direction="row" spacing={1.5}>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackRounded />}
-            onClick={() => navigate("/")}
-            sx={{
-              minHeight: 42,
-              px: 2,
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: "none",
-              borderColor: "divider",
-              "&:hover": {
-                borderColor: "primary.main",
-                bgcolor: "action.hover",
-              },
-            }}
-          >
-            Shop
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="flex min-h-11 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-[#1A1C22] dark:text-gray-300 dark:hover:bg-white/5"
+            >
+              <ArrowLeft size={17} />
+              Shop
+            </button>
 
-          <Button
-            variant="contained"
-            startIcon={
-              loading ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : (
-                <RefreshRounded />
-              )
-            }
-            onClick={() => void fetchOrders()}
-            disabled={loading}
-            sx={{
-              minHeight: 42,
-              px: 2,
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: "none",
-              boxShadow: "none",
-              "&:hover": {
-                boxShadow: "none",
-                filter: "brightness(1.08)",
-              },
-            }}
-          >
-            Refresh
-          </Button>
-        </Stack>
-      </Stack>
-
-      {/* Error Message */}
-      {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3, borderRadius: 2, alignItems: "center" }}
-          action={
-            <Button
-              color="inherit"
-              size="small"
+            <button
+              type="button"
               onClick={() => void fetchOrders()}
               disabled={loading}
-              sx={{ fontWeight: 700 }}
+              className="flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw size={17} className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </div>
+        </header>
+
+        {/* Error Message */}
+        {error && (
+          <div
+            role="alert"
+            className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400"
+          >
+            <p>{error}</p>
+
+            <button
+              type="button"
+              onClick={() => void fetchOrders()}
+              disabled={loading}
+              className="rounded-lg px-3 py-1.5 font-bold transition hover:bg-red-100 disabled:opacity-50 dark:hover:bg-red-500/20"
             >
               Retry
-            </Button>
-          }
-        >
-          {error}
-        </Alert>
-      )}
+            </button>
+          </div>
+        )}
 
-      {/* Loading State */}
-      {loading ? (
-        <Paper
-          variant="outlined"
-          sx={{
-            py: 8,
-            borderRadius: 4,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            borderColor: "divider",
-          }}
-        >
-          <CircularProgress size={36} />
-          <Typography color="text.secondary">Loading your orders...</Typography>
-        </Paper>
-      ) : !error && orders.length === 0 ? (
-        /* Empty State */
-        <Paper
-          elevation={0}
-          sx={{
-            textAlign: "center",
-            py: { xs: 5, md: 8 },
-            px: 3,
-            borderRadius: 4,
-            border: 1,
-            borderColor: "divider",
-            bgcolor: "background.paper",
-          }}
-        >
-          <Box
-            sx={{
-              width: 88,
-              height: 88,
-              mx: "auto",
-              mb: 3,
-              display: "grid",
-              placeItems: "center",
-              borderRadius: 3,
-              bgcolor: "action.hover",
-              color: "primary.main",
-            }}
-          >
-            <ShoppingBagOutlined sx={{ fontSize: 46 }} />
-          </Box>
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-gray-200 bg-white py-20 dark:border-white/10 dark:bg-[#1A1C22]">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600 dark:border-white/10 dark:border-t-blue-400" />
 
-          <Typography variant="h5" fontWeight={800} gutterBottom>
-            No orders yet
-          </Typography>
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Loading your orders...
+            </p>
+          </div>
+        ) : !error && orders.length === 0 ? (
+          /* Empty State */
+          <div className="rounded-3xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm sm:py-20 dark:border-white/10 dark:bg-[#1A1C22]">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+              <ShoppingBag size={38} />
+            </div>
 
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
-            Your purchases will appear here after checkout.
-          </Typography>
+            <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">
+              No orders yet
+            </h2>
 
-          <Button
-            variant="contained"
-            onClick={() => navigate("/")}
-            sx={{
-              px: 3,
-              py: 1.2,
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: "none",
-              boxShadow: "none",
-            }}
-          >
-            Start Shopping
-          </Button>
-        </Paper>
-      ) : (
-        /* Orders List */
-        <Stack spacing={2.5}>
-          {orders.map((order) => {
-            const items = getOrderItems(order);
-            const status = formatStatus(order.status);
-            const total = Number(order.total ?? order.totalAmount ?? 0);
+            <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+              Your purchases will appear here after checkout.
+            </p>
 
-            return (
-              <Paper
-                key={order._id}
-                elevation={0}
-                sx={{
-                  overflow: "hidden",
-                  border: 1,
-                  borderColor: "divider",
-                  borderRadius: 3,
-                  bgcolor: "background.paper",
-                  transition:
-                    "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    boxShadow: (theme) =>
-                      `0 8px 28px ${theme.palette.primary.main}12`,
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-                {/* Order Card Header */}
-                <Box
-                  sx={{
-                    px: { xs: 2, sm: 3 },
-                    py: 2.5,
-                    bgcolor: "action.hover",
-                  }}
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="mt-7 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+            >
+              Start Shopping
+            </button>
+          </div>
+        ) : (
+          /* Orders List */
+          <div className="flex flex-col gap-6">
+            {orders.map((order) => {
+              const items = getOrderItems(order);
+              const status = formatStatus(order.status);
+              const total = Number(order.total ?? order.totalAmount ?? 0);
+              const statusStyle = getStatusStyle(status);
+              const StatusIcon = statusStyle.icon;
+
+              return (
+                <article
+                  key={order._id}
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg dark:border-white/10 dark:bg-[#1A1C22] dark:hover:border-blue-500/30"
                 >
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    justifyContent="space-between"
-                    alignItems={{ xs: "flex-start", sm: "center" }}
-                    spacing={2}
-                  >
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{
-                          fontWeight: 800,
-                          letterSpacing: 1.2,
-                        }}
-                      >
+                  {/* Order Card Header */}
+                  <div className="flex flex-col gap-4 bg-gray-50 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 dark:bg-[#22252D]">
+                    <div className="min-w-0">
+                      <p className="text-xs font-extrabold tracking-widest text-gray-400 dark:text-gray-500">
                         ORDER NUMBER
-                      </Typography>
+                      </p>
 
-                      <Typography
-                        sx={{
-                          mt: 0.5,
-                          fontWeight: 800,
-                          fontSize: "0.98rem",
-                          overflowWrap: "anywhere",
-                        }}
-                      >
+                      <p className="mt-2 break-all text-sm font-extrabold text-gray-900 dark:text-white">
                         #{order._id}
-                      </Typography>
+                      </p>
 
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        spacing={0.7}
-                        sx={{ mt: 1 }}
-                      >
-                        <CalendarMonthOutlined
-                          sx={{ fontSize: 16, color: "text.secondary" }}
-                        />
+                      <div className="mt-3 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <CalendarDays size={16} />
+                        <span>{formatDate(order.createdAt)}</span>
+                      </div>
+                    </div>
 
-                        <Typography variant="body2" color="text.secondary">
-                          {order.createdAt &&
-                          !Number.isNaN(Date.parse(order.createdAt))
-                            ? new Date(order.createdAt).toLocaleDateString(
-                                undefined,
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )
-                            : "Date unavailable"}
-                        </Typography>
-                      </Stack>
-                    </Box>
-
-                    <Chip
-                      label={status}
-                      color={getStatusColor(status)}
-                      variant="outlined"
-                      icon={
-                        status.toLowerCase() === "completed" ||
-                        status.toLowerCase() === "delivered" ? (
-                          <CheckCircleOutlineRounded />
-                        ) : undefined
-                      }
-                      sx={{
-                        fontWeight: 700,
-                        borderRadius: 2,
-                        "& .MuiChip-label": { px: 1.2 },
-                      }}
-                    />
-                  </Stack>
-                </Box>
-
-                <Divider />
-
-                {/* Products */}
-                <Box sx={{ p: { xs: 2, sm: 3 } }}>
-                  {items.length > 0 ? (
-                    <Stack spacing={2}>
-                      {items.map((item, index) => (
-                        <Stack
-                          key={`${item.productId ?? item.title}-${index}`}
-                          direction="row"
-                          alignItems="center"
-                          spacing={{ xs: 1.5, sm: 2 }}
-                        >
-                          <Box
-                            sx={{
-                              width: { xs: 64, sm: 78 },
-                              height: { xs: 64, sm: 78 },
-                              flexShrink: 0,
-                              p: 1,
-                              borderRadius: 2,
-                              bgcolor: "action.hover",
-                              border: 1,
-                              borderColor: "divider",
-                              display: "grid",
-                              placeItems: "center",
-                            }}
-                          >
-                            {item.image ? (
-                              <Box
-                                component="img"
-                                src={item.image}
-                                alt={item.title}
-                                sx={{
-                                  width: "100%",
-                                  height: "100%",
-                                  objectFit: "contain",
-                                }}
-                              />
-                            ) : (
-                              <ShoppingBagOutlined
-                                sx={{
-                                  fontSize: 30,
-                                  color: "text.secondary",
-                                }}
-                              />
-                            )}
-                          </Box>
-
-                          <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography
-                              sx={{
-                                fontWeight: 700,
-                                overflowWrap: "anywhere",
-                                lineHeight: 1.5,
-                              }}
-                            >
-                              {item.title}
-                            </Typography>
-
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{ mt: 0.5 }}
-                            >
-                              Quantity: {item.quantity}
-                            </Typography>
-                          </Box>
-
-                          <Box sx={{ textAlign: "right", flexShrink: 0 }}>
-                            <Typography
-                              sx={{
-                                fontWeight: 800,
-                                fontSize: { xs: "0.85rem", sm: "0.95rem" },
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {(Number(item.unitPrice) * item.quantity).toFixed(
-                                2,
-                              )}{" "}
-                              EGP
-                            </Typography>
-
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              {Number(item.unitPrice).toFixed(2)} / item
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      ))}
-                    </Stack>
-                  ) : (
-                    <Typography color="text.secondary" variant="body2">
-                      No product details available for this order.
-                    </Typography>
-                  )}
-
-                  {/* Delivery Address */}
-                  {order.address && (
-                    <>
-                      <Divider sx={{ my: 2.5 }} />
-
-                      <Stack
-                        direction="row"
-                        spacing={1.2}
-                        alignItems="flex-start"
-                      >
-                        <LocationOnOutlined
-                          sx={{ color: "text.secondary", mt: 0.2 }}
-                        />
-
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{ mb: 0.5 }}
-                          >
-                            Delivery Address
-                          </Typography>
-
-                          <Typography
-                            sx={{ fontWeight: 600, overflowWrap: "anywhere" }}
-                          >
-                            {order.address}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </>
-                  )}
-                </Box>
-
-                <Divider />
-
-                {/* Order Total */}
-                <Box
-                  sx={{
-                    px: { xs: 2, sm: 3 },
-                    py: 2,
-                    bgcolor: "action.hover",
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    spacing={2}
-                  >
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ fontWeight: 800, letterSpacing: 1 }}
-                      >
-                        TOTAL AMOUNT
-                      </Typography>
-
-                      <Typography variant="body2" color="text.secondary">
-                        {items.length} {items.length === 1 ? "item" : "items"}
-                      </Typography>
-                    </Box>
-
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "primary.main",
-                        fontWeight: 900,
-                        fontSize: { xs: "1.1rem", sm: "1.3rem" },
-                        whiteSpace: "nowrap",
-                      }}
+                    <span
+                      className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold ${statusStyle.className}`}
                     >
+                      <StatusIcon size={15} />
+                      {status}
+                    </span>
+                  </div>
+
+                  <div className="border-t border-gray-100 dark:border-white/10" />
+
+                  {/* Products */}
+                  <div className="p-5 sm:p-7">
+                    {items.length > 0 ? (
+                      <div className="flex flex-col gap-5">
+                        {items.map((item, index) => (
+                          <div
+                            key={`${item.productId ?? item.title}-${index}`}
+                            className="flex items-center gap-3 sm:gap-5"
+                          >
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 p-2 sm:h-20 sm:w-20 dark:border-white/10 dark:bg-[#22252D]">
+                              {item.image ? (
+                                <img
+                                  src={item.image}
+                                  alt={item.title}
+                                  className="h-full w-full object-contain"
+                                />
+                              ) : (
+                                <ShoppingBag
+                                  size={28}
+                                  className="text-gray-400"
+                                />
+                              )}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <h3 className="break-words text-sm font-bold leading-6 text-gray-900 dark:text-white">
+                                {item.title}
+                              </h3>
+
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Quantity: {item.quantity}
+                              </p>
+                            </div>
+
+                            <div className="shrink-0 text-right">
+                              <p className="whitespace-nowrap text-sm font-extrabold text-gray-900 dark:text-white">
+                                {(
+                                  Number(item.unitPrice) * item.quantity
+                                ).toFixed(2)}{" "}
+                                EGP
+                              </p>
+
+                              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                                {Number(item.unitPrice).toFixed(2)} / item
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        No product details available for this order.
+                      </p>
+                    )}
+
+                    {/* Delivery Address */}
+                    {order.address && (
+                      <>
+                        <div className="my-6 border-t border-gray-100 dark:border-white/10" />
+
+                        <div className="flex items-start gap-3">
+                          <MapPin
+                            size={19}
+                            className="mt-0.5 shrink-0 text-gray-400"
+                          />
+
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                              Delivery Address
+                            </p>
+
+                            <p className="mt-1 break-words text-sm font-semibold leading-6 text-gray-800 dark:text-gray-200">
+                              {order.address}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="border-t border-gray-100 dark:border-white/10" />
+
+                  {/* Order Total */}
+                  <div className="flex items-center justify-between gap-4 bg-gray-50 px-5 py-4 sm:px-7 dark:bg-[#22252D]">
+                    <div>
+                      <p className="text-xs font-extrabold tracking-widest text-gray-400 dark:text-gray-500">
+                        TOTAL AMOUNT
+                      </p>
+
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        {items.length} {items.length === 1 ? "item" : "items"}
+                      </p>
+                    </div>
+
+                    <p className="whitespace-nowrap text-lg font-extrabold text-blue-600 dark:text-blue-400 sm:text-xl">
                       {total.toFixed(2)} EGP
-                    </Typography>
-                  </Stack>
-                </Box>
-              </Paper>
-            );
-          })}
-        </Stack>
-      )}
-    </Container>
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </main>
   );
 };
 

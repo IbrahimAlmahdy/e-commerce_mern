@@ -1,209 +1,272 @@
-import * as React from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
-import Tooltip from "@mui/material/Tooltip";
-import MenuItem from "@mui/material/MenuItem";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import { useState } from "react";
+import {
+  ShoppingCart,
+  Moon,
+  Sun,
+  UserRound,
+  Package,
+  LogOut,
+  Menu,
+  X,
+  ChevronDown,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import { useAuth } from "../context/Auth/AuthContext";
 import { useCart } from "../context/Cart/CartContext";
-import { Badge, Button } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import nexoraLogo from "../assets/nexora-logo.png";
 import { useThemeMode } from "../theme/ThemeModeContext";
+import nexoraLogo from "../assets/nexora-logo.png";
 
 function Navbar() {
   const { username, isAuthenticated, logout } = useAuth();
   const { cartItems } = useCart();
   const { mode, toggleColorMode } = useThemeMode();
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
-    null,
-  );
 
   const navigate = useNavigate();
 
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogin = () => {
     navigate("/login");
+    setIsMobileMenuOpen(false);
   };
 
   const handleLogout = () => {
     logout();
     navigate("/");
-    handleCloseUserMenu();
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
   const handleCart = () => {
     navigate(isAuthenticated ? "/cart" : "/login");
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
   return (
-    <AppBar position="static">
-      <Container maxWidth="xl">
-        <Toolbar disableGutters>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              width: "100%",
-            }}
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#101114]/95 text-white shadow-lg shadow-black/10 backdrop-blur-xl">
+      <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <button
+          type="button"
+          onClick={() => handleNavigate("/")}
+          className="group flex items-center gap-3"
+          aria-label="Go to homepage"
+        >
+          <img
+            src={nexoraLogo}
+            alt="NEXORA"
+            className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+          />
+
+          <div className="flex flex-col items-start">
+            <span className="text-xl font-extrabold tracking-[0.18em] text-white">
+              NEXORA
+            </span>
+            <span className="text-[9px] font-medium tracking-[0.25em] text-blue-400">
+              PREMIUM ELECTRONICS
+            </span>
+          </div>
+        </button>
+
+        {/* Desktop Actions */}
+        <div className="hidden items-center gap-3 md:flex">
+          {/* Theme Toggle */}
+          <button
+            type="button"
+            onClick={toggleColorMode}
+            aria-label={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
+            title={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white"
           >
-            <Button
-              variant="text"
-              onClick={() => navigate("/")}
-              sx={{ color: "common.white" }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
+            {mode === "light" ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+
+          {/* Cart */}
+          <button
+            type="button"
+            onClick={handleCart}
+            aria-label={`Shopping cart, ${cartItems.length} items`}
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-300 transition-all duration-200 hover:bg-white/10 hover:text-white"
+          >
+            <ShoppingCart size={21} />
+
+            {cartItems.length > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-[19px] min-w-[19px] items-center justify-center rounded-full bg-blue-500 px-1 text-[10px] font-bold text-white ring-2 ring-[#101114]">
+                {cartItems.length > 99 ? "99+" : cartItems.length}
+              </span>
+            )}
+          </button>
+
+          <div className="mx-1 h-7 w-px bg-white/10" />
+
+          {/* Authenticated User */}
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsUserMenuOpen((current) => !current)}
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="menu"
+                className="flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-white/10"
               >
-                <Box
-                  component="img"
-                  src={nexoraLogo}
-                  alt="NEXORA"
-                  sx={{ display: "flex", width: 32, height: 32, mr: 1 }}
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-blue-400/30 bg-blue-500/15 text-blue-400">
+                  <UserRound size={19} />
+                </div>
+
+                <div className="flex flex-col items-start">
+                  <span className="max-w-32 truncate text-sm font-semibold text-white">
+                    {username}
+                  </span>
+                  <span className="text-xs text-gray-400">My Account</span>
+                </div>
+
+                <ChevronDown
+                  size={16}
+                  className={`text-gray-400 transition-transform ${
+                    isUserMenuOpen ? "rotate-180" : ""
+                  }`}
                 />
-                <Typography
-                  variant="h6"
-                  noWrap
-                  component="a"
-                  sx={{
-                    mr: 2,
-                    display: "flex",
-                    fontFamily: "monospace",
-                    fontWeight: 700,
-                  }}
-                >
-                  NEXORA
-                </Typography>
-              </Box>
-            </Button>
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                flexGrow: 0,
-                gap: 4,
-                alignItems: "center",
-              }}
-            >
-              <Tooltip
-                title={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
-              >
-                <IconButton
-                  aria-label={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
-                  color="inherit"
-                  onClick={toggleColorMode}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      transform:
-                        mode === "dark" ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 200ms ease-in-out",
-                    }}
-                  >
-                    {mode === "light" ? (
-                      <DarkModeOutlinedIcon />
-                    ) : (
-                      <LightModeOutlinedIcon />
-                    )}
-                  </Box>
-                </IconButton>
-              </Tooltip>
-              <IconButton
-                color="inherit"
-                aria-label="cart"
-                onClick={handleCart}
-              >
-                <Badge badgeContent={cartItems.length} color="secondary">
-                  <ShoppingCartIcon sx={{ color: "common.white" }} />
-                </Badge>
-              </IconButton>
-              {isAuthenticated ? (
-                <>
-                  <Tooltip title="Open settings">
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 2,
-                      }}
-                    >
-                      <Typography>{username}</Typography>
+              </button>
 
-                      <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                        <Avatar
-                          alt={username || ""}
-                          src="/static/images/avatar/2.jpg"
-                        />
-                      </IconButton>
-                    </Box>
-                  </Tooltip>
-
-                  <Menu
-                    sx={{ mt: "45px" }}
-                    id="menu-appbar"
-                    anchorEl={anchorElUser}
-                    anchorOrigin={{
-                      vertical: "top",
-                      horizontal: "right",
-                    }}
-                    keepMounted
-                    transformOrigin={{
-                      vertical: "top",
-                      horizontal: "right",
-                    }}
-                    open={Boolean(anchorElUser)}
-                    onClose={handleCloseUserMenu}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        handleCloseUserMenu();
-                        navigate("/orders");
-                      }}
-                    >
-                      <Typography align="center">My Orders</Typography>
-                    </MenuItem>
-                    <MenuItem onClick={handleLogout}>
-                      <Typography align="center">Logout</Typography>
-                    </MenuItem>
-                  </Menu>
-                </>
-              ) : (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleLogin}
+              {isUserMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full mt-3 w-56 overflow-hidden rounded-2xl border border-white/10 bg-[#1A1C22] p-2 shadow-2xl shadow-black/30"
                 >
-                  Login
-                </Button>
+                  <div className="border-b border-white/10 px-3 py-3">
+                    <p className="text-xs text-gray-400">Signed in as</p>
+                    <p className="mt-1 truncate text-sm font-semibold text-white">
+                      {username}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => handleNavigate("/orders")}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <Package size={18} />
+                    My Orders
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-red-400 transition-colors hover:bg-red-500/10"
+                  >
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                </div>
               )}
-            </Box>
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleLogin}
+              className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-500"
+            >
+              Login
+            </button>
+          )}
+        </div>
+
+        {/* Mobile Actions */}
+        <div className="flex items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={toggleColorMode}
+            aria-label="Toggle theme"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-300 transition-colors hover:bg-white/10"
+          >
+            {mode === "light" ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCart}
+            aria-label={`Shopping cart, ${cartItems.length} items`}
+            className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-300 transition-colors hover:bg-white/10"
+          >
+            <ShoppingCart size={20} />
+
+            {cartItems.length > 0 && (
+              <span className="absolute right-0 top-0 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-blue-500 px-1 text-[9px] font-bold text-white">
+                {cartItems.length > 99 ? "99+" : cartItems.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMobileMenuOpen}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-300 transition-colors hover:bg-white/10"
+          >
+            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="border-t border-white/10 bg-[#15171C] px-4 py-4 md:hidden">
+          {isAuthenticated ? (
+            <>
+              <div className="mb-4 flex items-center gap-3 rounded-xl bg-white/5 p-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/15 text-blue-400">
+                  <UserRound size={20} />
+                </div>
+
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {username}
+                  </p>
+                  <p className="text-xs text-gray-400">My Account</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleNavigate("/orders")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <Package size={18} />
+                My Orders
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-red-400 transition-colors hover:bg-red-500/10"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={handleLogin}
+              className="w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            >
+              Login
+            </button>
+          )}
+        </div>
+      )}
+    </header>
   );
 }
 

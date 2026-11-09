@@ -1,6 +1,11 @@
-import { useEffect, useMemo, useState, type FC, type PropsWithChildren } from "react";
-import { CssBaseline, ThemeProvider } from "@mui/material";
-import { createNexoraTheme } from "../theme";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FC,
+  type PropsWithChildren,
+} from "react";
+
 import { ThemeModeContext, type ThemeMode } from "./ThemeModeContext";
 
 const THEME_MODE_KEY = "nexora-theme-mode";
@@ -19,19 +24,20 @@ const getInitialMode = (): ThemeMode => {
 
 export const ThemeModeProvider: FC<PropsWithChildren> = ({ children }) => {
   const [mode, setMode] = useState<ThemeMode>(getInitialMode);
-  const theme = useMemo(() => createNexoraTheme(mode), [mode]);
 
   useEffect(() => {
     localStorage.setItem(THEME_MODE_KEY, mode);
+
+    document.documentElement.classList.toggle("dark", mode === "dark");
+
+    document.documentElement.style.colorScheme = mode;
   }, [mode]);
 
   const value = useMemo(
     () => ({
       mode,
       toggleColorMode: () => {
-        setMode((currentMode) =>
-          currentMode === "light" ? "dark" : "light",
-        );
+        setMode((currentMode) => (currentMode === "light" ? "dark" : "light"));
       },
     }),
     [mode],
@@ -39,10 +45,7 @@ export const ThemeModeProvider: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <ThemeModeContext.Provider value={value}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </ThemeProvider>
+      {children}
     </ThemeModeContext.Provider>
   );
 };

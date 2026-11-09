@@ -1,5 +1,4 @@
-import { CheckCircleOutlined, ShoppingBagOutlined } from "@mui/icons-material";
-import { Box, Button, Container, Paper, Typography } from "@mui/material";
+import { CheckCircle2, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const OrderSuccessPage = () => {
@@ -14,121 +13,54 @@ const OrderSuccessPage = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: { xs: 5, md: 9 } }}>
-      <Paper
-        elevation={0}
-        sx={{
-          p: { xs: 3, sm: 5 },
-          borderRadius: 4,
-          border: 1,
-          borderColor: "divider",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 2.5,
-        }}
-      >
-        <Box
-          sx={{
-            width: 100,
-            height: 100,
-            borderRadius: "50%",
-            bgcolor: "success.main",
-            color: "success.contrastText",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mb: 1,
-          }}
-        >
-          <CheckCircleOutlined sx={{ fontSize: 64 }} />
-        </Box>
+    <main className="flex min-h-[75vh] items-center justify-center bg-gray-50 px-4 py-12 dark:bg-[#111318] sm:px-6">
+      <section className="flex w-full max-w-2xl flex-col items-center gap-5 rounded-3xl border border-gray-200 bg-white px-6 py-10 text-center shadow-sm sm:px-12 sm:py-14 dark:border-white/10 dark:bg-[#1A1C22]">
+        {/* Success Icon */}
+        <div className="mb-2 flex h-24 w-24 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+          <CheckCircle2 size={60} strokeWidth={1.8} />
+        </div>
 
-        <Typography
-          variant="overline"
-          sx={{
-            color: "primary.main",
-            fontWeight: 700,
-            letterSpacing: 2,
-          }}
-        >
+        <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
           NEXORA STORE
-        </Typography>
+        </p>
 
-        <Typography
-          component="h1"
-          variant="h4"
-          sx={{
-            fontWeight: 800,
-            fontSize: { xs: "1.8rem", sm: "2.2rem" },
-          }}
-        >
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
           Order Placed Successfully!
-        </Typography>
+        </h1>
 
-        <Typography color="text.secondary" sx={{ lineHeight: 1.8 }}>
+        <p className="max-w-lg text-sm leading-7 text-gray-500 dark:text-gray-400 sm:text-base">
           Thank you for your order. We have received your request and will start
           processing it shortly.
-        </Typography>
+        </p>
 
-        <Box
-          sx={{
-            bgcolor: "action.hover",
-            borderRadius: 2,
-            p: 2,
-            width: "100%",
-            mt: 1,
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
+        {/* Thank You Message */}
+        <div className="mt-2 w-full rounded-2xl bg-gray-50 p-5 dark:bg-[#22252D]">
+          <p className="text-sm leading-7 text-gray-600 dark:text-gray-300">
             Thank you for shopping with NEXORA. We hope you enjoy your purchase!
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: 1.5,
-            width: "100%",
-            mt: 1,
-          }}
-        >
-          <Button
-            variant="contained"
-            size="large"
-            fullWidth
-            startIcon={<ShoppingBagOutlined />}
+        {/* Actions */}
+        <div className="mt-2 flex w-full flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
             onClick={handleHome}
-            sx={{
-              py: 1.4,
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: "none",
-              boxShadow: "none",
-            }}
+            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:bg-blue-700 active:scale-[0.98]"
           >
+            <ShoppingBag size={18} />
             Continue Shopping
-          </Button>
+          </button>
 
-          <Button
-            variant="outlined"
-            size="large"
-            fullWidth
+          <button
+            type="button"
             onClick={handleOrders}
-            sx={{
-              py: 1.4,
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: "none",
-            }}
+            className="flex min-h-12 flex-1 items-center justify-center rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-700 transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 active:scale-[0.98] dark:border-white/10 dark:bg-transparent dark:text-gray-300 dark:hover:border-blue-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-400"
           >
             My Orders
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
+          </button>
+        </div>
+      </section>
+    </main>
   );
 };
 

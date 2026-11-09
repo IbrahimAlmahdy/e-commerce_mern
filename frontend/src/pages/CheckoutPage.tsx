@@ -1,29 +1,33 @@
 import { useRef, useState } from "react";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Container from "@mui/material/Container";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
-import Paper from "@mui/material/Paper";
-import Alert from "@mui/material/Alert";
-import CircularProgress from "@mui/material/CircularProgress";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  MapPin,
+  Package,
+  ShoppingBag,
+  X,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import { useCart } from "../context/Cart/CartContext";
 import { BASE_URL } from "../constants/baseUrl";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/Auth/AuthContext";
 
 const CheckoutPage = () => {
   const { cartItems, totalAmount } = useCart();
   const { token } = useAuth();
 
-  const addressRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLTextAreaElement>(null);
   const navigate = useNavigate();
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleConfirmOrder = async () => {
+  const handleConfirmOrder = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
     const address = addressRef.current?.value.trim();
 
     if (!address) {
@@ -73,248 +77,236 @@ const CheckoutPage = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 3, md: 5 } }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography
-          variant="overline"
-          sx={{
-            color: "primary.main",
-            fontWeight: 700,
-            letterSpacing: 2,
-          }}
-        >
-          NEXORA STORE
-        </Typography>
+    <main className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-[#111318] sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-8">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
+            NEXORA STORE
+          </p>
 
-        <Typography
-          variant="h3"
-          component="h1"
-          sx={{
-            fontWeight: 800,
-            fontSize: { xs: "2rem", md: "2.5rem" },
-            mt: 0.5,
-          }}
-        >
-          Checkout
-        </Typography>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+            Checkout
+          </h1>
 
-        <Typography color="text.secondary" sx={{ mt: 1 }}>
-          Review your order and enter your delivery address.
-        </Typography>
-      </Box>
+          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+            Review your order and enter your delivery address.
+          </p>
+        </header>
 
-      {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3, borderRadius: 2 }}
-          onClose={() => setError("")}
-        >
-          {error}
-        </Alert>
-      )}
-
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "1.2fr 0.8fr" },
-          gap: 3,
-          alignItems: "start",
-        }}
-      >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <Paper
-            variant="outlined"
-            sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}
+        {error && (
+          <div
+            role="alert"
+            className="mb-6 flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400"
           >
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-              Delivery Information
-            </Typography>
+            <p>{error}</p>
 
-            <TextField
-              inputRef={addressRef}
-              label="Delivery Address"
-              name="address"
-              placeholder="Enter your full address"
-              fullWidth
-              required
-              multiline
-              minRows={3}
-              autoComplete="street-address"
-            />
-          </Paper>
-
-          <Paper
-            variant="outlined"
-            sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-              Order Items ({cartItems.length})
-            </Typography>
-
-            {cartItems.length === 0 ? (
-              <Box sx={{ py: 3, textAlign: "center" }}>
-                <Typography color="text.secondary">
-                  Your cart is empty.
-                </Typography>
-
-                <Button sx={{ mt: 2 }} onClick={() => navigate("/")}>
-                  Continue Shopping
-                </Button>
-              </Box>
-            ) : (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {cartItems.map((item) => (
-                  <Box
-                    key={item.productId}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 84,
-                        height: 84,
-                        flexShrink: 0,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        bgcolor: "action.hover",
-                        borderRadius: 2,
-                        p: 1,
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src={item.image}
-                        alt={item.title}
-                        sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                        }}
-                      />
-                    </Box>
-
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{ fontWeight: 700, overflowWrap: "anywhere" }}
-                      >
-                        {item.title}
-                      </Typography>
-
-                      <Typography variant="body2" color="text.secondary">
-                        Quantity: {item.quantity}
-                      </Typography>
-
-                      <Typography variant="body2" color="text.secondary">
-                        {item.unitPrice.toFixed(2)} EGP each
-                      </Typography>
-                    </Box>
-
-                    <Typography
-                      sx={{
-                        fontWeight: 700,
-                        whiteSpace: "nowrap",
-                        fontSize: { xs: "0.85rem", sm: "1rem" },
-                      }}
-                    >
-                      {(item.quantity * item.unitPrice).toFixed(2)} EGP
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            )}
-          </Paper>
-        </Box>
-
-        <Paper
-          variant="outlined"
-          sx={{
-            p: { xs: 2, sm: 3 },
-            borderRadius: 3,
-            position: { md: "sticky" },
-            top: { md: 24 },
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-            Order Summary
-          </Typography>
-
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Typography color="text.secondary">Products</Typography>
-            <Typography>{cartItems.length}</Typography>
-          </Box>
-
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-            <Typography color="text.secondary">Subtotal</Typography>
-            <Typography>{totalAmount.toFixed(2)} EGP</Typography>
-          </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 2,
-              mb: 3,
-            }}
-          >
-            <Typography fontWeight={700}>Total Amount</Typography>
-
-            <Typography
-              variant="h5"
-              sx={{ color: "primary.main", fontWeight: 800 }}
+            <button
+              type="button"
+              onClick={() => setError("")}
+              aria-label="Dismiss error"
+              className="shrink-0 rounded-md p-1 transition hover:bg-red-100 dark:hover:bg-red-500/20"
             >
-              {totalAmount.toFixed(2)} EGP
-            </Typography>
-          </Box>
+              <X size={17} />
+            </button>
+          </div>
+        )}
 
-          <Button
-            variant="contained"
-            fullWidth
-            size="large"
-            onClick={handleConfirmOrder}
-            disabled={loading || cartItems.length === 0}
-            sx={{
-              py: 1.5,
-              borderRadius: 2,
-              fontWeight: 700,
-              textTransform: "none",
-              boxShadow: "none",
-              "&:hover": { boxShadow: 2 },
-            }}
-          >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Confirm Order"
-            )}
-          </Button>
+        <form
+          onSubmit={handleConfirmOrder}
+          className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_360px]"
+        >
+          <div className="flex flex-col gap-6">
+            {/* Delivery Information */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7 dark:border-white/10 dark:bg-[#1A1C22]">
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                  <MapPin size={20} />
+                </div>
 
-          <Button
-            fullWidth
-            onClick={() => navigate("/cart")}
-            disabled={loading}
-            sx={{ mt: 1.5, textTransform: "none" }}
-          >
-            Back to Cart
-          </Button>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Delivery Information
+                  </h2>
 
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block", textAlign: "center", mt: 2 }}
-          >
-            Please review your delivery details before confirming.
-          </Typography>
-        </Paper>
-      </Box>
-    </Container>
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    Where should we deliver your order?
+                  </p>
+                </div>
+              </div>
+
+              <label
+                htmlFor="address"
+                className="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300"
+              >
+                Delivery Address
+              </label>
+
+              <textarea
+                ref={addressRef}
+                id="address"
+                name="address"
+                placeholder="Enter your full delivery address..."
+                required
+                rows={4}
+                autoComplete="street-address"
+                className="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#22252D] dark:text-white"
+              />
+            </section>
+
+            {/* Order Items */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7 dark:border-white/10 dark:bg-[#1A1C22]">
+              <div className="mb-6 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                    <Package size={20} />
+                  </div>
+
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                      Order Items
+                    </h2>
+
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {cartItems.length}{" "}
+                      {cartItems.length === 1 ? "item" : "items"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {cartItems.length === 0 ? (
+                <div className="py-8 text-center">
+                  <ShoppingBag
+                    size={35}
+                    className="mx-auto text-gray-300 dark:text-gray-600"
+                  />
+
+                  <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+                    Your cart is empty.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="mt-4 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col divide-y divide-gray-100 dark:divide-white/10">
+                  {cartItems.map((item) => (
+                    <div
+                      key={item.productId}
+                      className="flex items-center gap-4 py-4 first:pt-0 last:pb-0"
+                    >
+                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-gray-50 p-2 dark:bg-[#22252D]">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="h-full w-full object-contain"
+                        />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <h3 className="line-clamp-2 text-sm font-bold text-gray-900 dark:text-white">
+                          {item.title}
+                        </h3>
+
+                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          Quantity: {item.quantity}
+                        </p>
+
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          {item.unitPrice.toFixed(2)} EGP each
+                        </p>
+                      </div>
+
+                      <p className="shrink-0 text-sm font-bold text-gray-900 dark:text-white">
+                        {(item.quantity * item.unitPrice).toFixed(2)} EGP
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          {/* Order Summary */}
+          <aside className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm lg:sticky lg:top-24 dark:border-white/10 dark:bg-[#1A1C22]">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Order Summary
+            </h2>
+
+            <div className="my-6 border-t border-gray-100 dark:border-white/10" />
+
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Products
+              </span>
+
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                {cartItems.length}
+              </span>
+            </div>
+
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Subtotal
+              </span>
+
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                {totalAmount.toFixed(2)} EGP
+              </span>
+            </div>
+
+            <div className="my-5 border-t border-gray-100 dark:border-white/10" />
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-bold text-gray-900 dark:text-white">
+                Total Amount
+              </span>
+
+              <span className="text-xl font-extrabold text-blue-600 dark:text-blue-400">
+                {totalAmount.toFixed(2)} EGP
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || cartItems.length === 0}
+              className="mt-7 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={18} />
+                  Confirm Order
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate("/cart")}
+              disabled={loading}
+              className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/5"
+            >
+              <ArrowLeft size={16} />
+              Back to Cart
+            </button>
+
+            <p className="mt-5 text-center text-xs leading-5 text-gray-400 dark:text-gray-500">
+              Please review your delivery details before confirming.
+            </p>
+          </aside>
+        </form>
+      </div>
+    </main>
   );
 };
 
