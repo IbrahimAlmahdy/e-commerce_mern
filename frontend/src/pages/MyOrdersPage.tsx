@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 import api from "../lib/axios";
 import { useAuth } from "../stores/authStore";
+
 interface OrderProduct {
   productId?: string;
   title: string;
@@ -113,7 +114,6 @@ const formatDate = (date?: string) => {
   });
 };
 
-// Fetch orders from the API
 const fetchOrders = async (): Promise<Order[]> => {
   const response = await api.get<unknown>("/cart/orders");
   const data = response.data;
@@ -188,7 +188,6 @@ const MyOrdersPage = () => {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 dark:bg-[#111318] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        {/* Page Header */}
         <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
@@ -224,12 +223,11 @@ const MyOrdersPage = () => {
                 size={17}
                 className={isFetching ? "animate-spin" : ""}
               />
-              Refresh
+              {isFetching ? "Refreshing..." : "Refresh"}
             </button>
           </div>
         </header>
 
-        {/* Error Message */}
         {errorMessage && (
           <div
             role="alert"
@@ -248,7 +246,6 @@ const MyOrdersPage = () => {
           </div>
         )}
 
-        {/* Loading State */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-gray-200 bg-white py-20 dark:border-white/10 dark:bg-[#1A1C22]">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600 dark:border-white/10 dark:border-t-blue-400" />
@@ -258,7 +255,6 @@ const MyOrdersPage = () => {
             </p>
           </div>
         ) : !isError && orders.length === 0 ? (
-          /* Empty State */
           <div className="rounded-3xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm sm:py-20 dark:border-white/10 dark:bg-[#1A1C22]">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
               <ShoppingBag size={38} />
@@ -281,7 +277,6 @@ const MyOrdersPage = () => {
             </button>
           </div>
         ) : (
-          /* Orders List */
           !isError && (
             <div className="flex flex-col gap-6">
               {orders.map((order) => {
@@ -296,7 +291,6 @@ const MyOrdersPage = () => {
                     key={order._id}
                     className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg dark:border-white/10 dark:bg-[#1A1C22] dark:hover:border-blue-500/30"
                   >
-                    {/* Order Card Header */}
                     <div className="flex flex-col gap-4 bg-gray-50 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7 dark:bg-[#22252D]">
                       <div className="min-w-0">
                         <p className="text-xs font-extrabold tracking-widest text-gray-400 dark:text-gray-500">
@@ -323,7 +317,6 @@ const MyOrdersPage = () => {
 
                     <div className="border-t border-gray-100 dark:border-white/10" />
 
-                    {/* Products */}
                     <div className="p-5 sm:p-7">
                       {items.length > 0 ? (
                         <div className="flex flex-col gap-5">
@@ -378,7 +371,6 @@ const MyOrdersPage = () => {
                         </p>
                       )}
 
-                      {/* Delivery Address */}
                       {order.address && (
                         <>
                           <div className="my-6 border-t border-gray-100 dark:border-white/10" />
@@ -405,7 +397,6 @@ const MyOrdersPage = () => {
 
                     <div className="border-t border-gray-100 dark:border-white/10" />
 
-                    {/* Order Total */}
                     <div className="flex items-center justify-between gap-4 bg-gray-50 px-5 py-4 sm:px-7 dark:bg-[#22252D]">
                       <div>
                         <p className="text-xs font-extrabold tracking-widest text-gray-400 dark:text-gray-500">

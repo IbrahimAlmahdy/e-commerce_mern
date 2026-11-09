@@ -8,7 +8,7 @@ import {
   checkoutCart,
   getOrdersForUser,
 } from "../services/cartService";
-import { ExtendRequest } from "../extendedRequest";
+import { ExtendRequest } from "../types/extendedRequest";
 import validateJWT from "../middlewares/validateJWT";
 
 const router = express.Router();
