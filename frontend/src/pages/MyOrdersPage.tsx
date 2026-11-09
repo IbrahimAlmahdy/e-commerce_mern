@@ -116,7 +116,6 @@ const formatDate = (date?: string) => {
 // Fetch orders from the API
 const fetchOrders = async (): Promise<Order[]> => {
   const response = await api.get<unknown>("/cart/orders");
-
   const data = response.data;
 
   const result = Array.isArray(data)
