@@ -9,9 +9,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { useCart } from "../context/Cart/CartContext";
-import api from "../lib/axios";
-import { useAuth } from "../stores/authStore";
+import { useCart } from "../hooks/useCart";
+import { checkoutCart } from "../services/cartService";
+import { useAuth } from "../../auth/stores/authStore";
 import axios from "axios";
 
 const CheckoutPage = () => {
@@ -50,7 +50,7 @@ const CheckoutPage = () => {
       setError("");
       setLoading(true);
 
-      await api.post("/cart/checkout", { address });
+      await checkoutCart(address);
 
       navigate("/order-success");
     } catch (err) {

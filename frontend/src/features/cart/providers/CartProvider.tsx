@@ -1,45 +1,16 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import type { PropsWithChildren } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { CartContext } from "./CartContext";
-import type { CartItem } from "../../types/CartItem";
-import api from "../../lib/axios";
-import { useAuth } from "../../stores/authStore";
-
-interface ApiCartItem {
-  product: {
-    _id: string;
-    title: string;
-    image: string;
-    unitPrice?: number;
-  };
-  quantity: number;
-  unitPrice?: number;
-}
-
-interface ApiCart {
-  items: ApiCartItem[];
-  totalAmount?: number;
-}
-
-const mapCartItems = (items: ApiCartItem[]): CartItem[] =>
-  items.map(({ product, quantity, unitPrice }) => ({
-    productId: product._id,
-    title: product.title,
-    image: product.image,
-    quantity,
-    unitPrice: unitPrice ?? product.unitPrice ?? 0,
-  }));
-
-const calculateTotal = (cart: ApiCart): number => {
-  const items = mapCartItems(cart.items);
-
-  return (
-    cart.totalAmount ??
-    items.reduce((total, item) => total + item.quantity * item.unitPrice, 0)
-  );
-};
+import { useAuth } from "../../auth/stores/authStore";
+import { CartContext } from "../context/CartContext";
+import {
+  calculateCartTotal,
+  clearCartRequest,
+  mapCartItems,
+  requestCart,
+} from "../services/cartService";
+import type { ApiCart, CartItem } from "../types/cart.types";
 
 const CartProvider = ({ children }: PropsWithChildren) => {
   const token = useAuth((state) => state.token);
@@ -49,50 +20,15 @@ const CartProvider = ({ children }: PropsWithChildren) => {
 
   const cartQueryKey = ["cart", token];
 
-  const requestCart = useCallback(
-    async (
-      url: string,
-      options: {
-        method?: "GET" | "POST" | "PUT" | "DELETE";
-        data?: unknown;
-      } = {},
-    ): Promise<ApiCart> => {
-      if (!token) {
-        throw new Error("Please log in to manage your cart.");
-      }
-
-      const response = await api.request<ApiCart>({
-        url,
-        method: options.method ?? "GET",
-        data: options.data,
-      });
-
-      const data: unknown = response.data;
-
-      if (
-        typeof data !== "object" ||
-        data === null ||
-        !("items" in data) ||
-        !Array.isArray(data.items)
-      ) {
-        throw new Error("Invalid cart response from server.");
-      }
-
-      return data as ApiCart;
-    },
-    [token],
-  );
-
-  // Fetch cart data through TanStack Query.
   const { data: cart, error: queryError } = useQuery({
     queryKey: cartQueryKey,
-    queryFn: () => requestCart("/cart"),
+    queryFn: () => requestCart(token, "/cart"),
     enabled: Boolean(token),
   });
 
-  const cartItems = token && cart ? mapCartItems(cart.items) : [];
+  const cartItems: CartItem[] = token && cart ? mapCartItems(cart.items) : [];
 
-  const totalAmount = token && cart ? calculateTotal(cart) : 0;
+  const totalAmount = token && cart ? calculateCartTotal(cart) : 0;
 
   const executeCartMutation = async (
     action: () => Promise<ApiCart>,
@@ -112,7 +48,7 @@ const CartProvider = ({ children }: PropsWithChildren) => {
   const addItemToCart = async (productId: string) => {
     await executeCartMutation(
       () =>
-        requestCart("/cart/items", {
+        requestCart(token, "/cart/items", {
           method: "POST",
           data: { productId, quantity: 1 },
         }),
@@ -128,7 +64,7 @@ const CartProvider = ({ children }: PropsWithChildren) => {
 
     await executeCartMutation(
       () =>
-        requestCart("/cart/items", {
+        requestCart(token, "/cart/items", {
           method: "PUT",
           data: { productId, quantity },
         }),
@@ -139,7 +75,7 @@ const CartProvider = ({ children }: PropsWithChildren) => {
   const removeItemInCart = async (productId: string) => {
     await executeCartMutation(
       () =>
-        requestCart(`/cart/items/${encodeURIComponent(productId)}`, {
+        requestCart(token, `/cart/items/${encodeURIComponent(productId)}`, {
           method: "DELETE",
         }),
       "Failed to remove item.",
@@ -154,7 +90,7 @@ const CartProvider = ({ children }: PropsWithChildren) => {
     try {
       setError("");
 
-      await api.delete("/cart");
+      await clearCartRequest();
 
       queryClient.setQueryData<ApiCart>(cartQueryKey, {
         items: [],

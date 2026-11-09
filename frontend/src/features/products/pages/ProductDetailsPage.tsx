@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-import { useAuth } from "../../../stores/authStore";
-import { useCart } from "../../../context/Cart/CartContext";
+import { useAuth } from "../../auth/stores/authStore";
+import { useCart } from "../../cart/hooks/useCart";
 import { useProducts } from "../hooks/useProducts";
 
 export default function ProductDetailsPage() {

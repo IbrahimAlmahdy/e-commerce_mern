@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ShoppingCart, ArrowUpRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { useCart } from "../../../context/Cart/CartContext";
-import { useAuth } from "../../../stores/authStore";
+import { useCart } from "../../cart/hooks/useCart";
+import { useAuth } from "../../auth/stores/authStore";
 
 interface Props {
   _id: string;

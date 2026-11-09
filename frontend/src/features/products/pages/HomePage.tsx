@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 
-import ProductCard from "../features/products/components/ProductCard";
-import ProductToolbar from "../features/products/components/ProductToolbar";
-import { useProducts } from "../features/products/hooks/useProducts";
+import ProductCard from "../components/ProductCard";
+import ProductToolbar from "../components/ProductToolbar";
+import { useProducts } from "../hooks/useProducts";
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState("");

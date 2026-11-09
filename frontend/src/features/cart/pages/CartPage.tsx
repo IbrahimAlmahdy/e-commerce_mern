@@ -1,7 +1,7 @@
 import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { useCart } from "../context/Cart/CartContext";
+import { useCart } from "../hooks/useCart";
 
 const CartPage = () => {
   const {

@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-
 import {
   ArrowLeft,
   CalendarDays,
@@ -15,32 +13,9 @@ import {
 
 import { useNavigate } from "react-router-dom";
 
-import api from "../lib/axios";
-import { useAuth } from "../stores/authStore";
-
-interface OrderProduct {
-  productId?: string;
-  title: string;
-  image?: string;
-  quantity: number;
-  unitPrice: number;
-}
-
-interface Order {
-  _id: string;
-  createdAt?: string;
-  status?: string;
-  address?: string;
-  orderItems?: {
-    productTitle: string;
-    productImage?: string;
-    quantity: number;
-    unitPrice: number;
-  }[];
-  items?: OrderProduct[];
-  total?: number;
-  totalAmount?: number;
-}
+import { useAuth } from "../../auth/stores/authStore";
+import { useOrders } from "../hooks/useOrders";
+import type { Order, OrderProduct } from "../types/order.types";
 
 const getStatusStyle = (status: string) => {
   switch (status.toLowerCase()) {
@@ -114,26 +89,6 @@ const formatDate = (date?: string) => {
   });
 };
 
-const fetchOrders = async (): Promise<Order[]> => {
-  const response = await api.get<unknown>("/cart/orders");
-  const data = response.data;
-
-  const result = Array.isArray(data)
-    ? data
-    : typeof data === "object" &&
-        data !== null &&
-        "orders" in data &&
-        Array.isArray(data.orders)
-      ? data.orders
-      : null;
-
-  if (!result) {
-    throw new Error("The server returned an unexpected orders format.");
-  }
-
-  return result as Order[];
-};
-
 const MyOrdersPage = () => {
   const { token, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -145,11 +100,7 @@ const MyOrdersPage = () => {
     error,
     isFetching,
     refetch,
-  } = useQuery({
-    queryKey: ["orders", token],
-    queryFn: fetchOrders,
-    enabled: Boolean(isAuthenticated && token),
-  });
+  } = useOrders({ token, isAuthenticated });
 
   const errorMessage = isError
     ? error instanceof Error

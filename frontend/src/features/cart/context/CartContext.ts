@@ -1,5 +1,5 @@
-import { createContext, useContext } from "react";
-import type { CartItem } from "../../types/CartItem";
+import { createContext } from "react";
+import type { CartItem } from "../types/cart.types";
 
 export interface CartContextType {
   cartItems: CartItem[];
@@ -22,5 +22,3 @@ export const CartContext = createContext<CartContextType>({
   clearCart: async () => {},
   clearError: () => {},
 });
-
-export const useCart = () => useContext(CartContext);
